@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Text;
 namespace PakExplorer.Pak;
 
 public class Pak {
@@ -53,7 +53,9 @@ public class Pak {
             for ( var posEntries = _reader.BaseStream.Position; _reader.BaseStream.Position - posEntries < _entriesSize; ) {
                 var entryType = (PakEntryType)_reader.ReadByte();
                 int entryNameLength = _reader.ReadByte();
-                var entryName = new string(_reader.ReadChars(entryNameLength));
+                var entryNameBytes = new byte[entryNameLength];
+                _reader.Read(entryNameBytes, 0, entryNameLength);
+                var entryName = Encoding.UTF8.GetString(entryNameBytes);
 
                 if ( entryType == PakEntryType.Directory ) ReadEntriesFromDirectory(entryName);
                 else PakEntries.Add(new PakEntry(entryName, _reader));
@@ -68,7 +70,9 @@ public class Pak {
         for ( var i = 0; i < childCount; i++ ) {
 	        var entryType = (PakEntryType)_reader.ReadByte();
             int entryNameLength = _reader.ReadByte();
-            var entryName = dirName + "\\" + new string(_reader.ReadChars(entryNameLength));
+            var entryNameBytes = new byte[entryNameLength];
+            _reader.Read(entryNameBytes, 0, entryNameLength);
+            var entryName = dirName + "\\" + Encoding.UTF8.GetString(entryNameBytes); ;
 
             switch (entryType) {
                 case PakEntryType.File:

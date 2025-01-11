@@ -67,16 +67,27 @@ namespace PakExplorer {
             ExtractAllToFolder(dialog.SelectedPath);
         }
 
-        private void ExtractAllToFolder(string dialogSelectedPath) {
-            foreach (PakTreeItem pak in PakList) {
-                var currentExtractPath = Path.Combine(dialogSelectedPath,
-                    Path.GetFileNameWithoutExtension(pak.PakFile.FileName));
-                foreach (var entry in pak.PakFile.PakEntries) {
+        private void ExtractAllToFolder(string dialogSelectedPath)
+        {
+            foreach (PakTreeItem pak in PakList)
+            {
+                var currentExtractPath = Path.Combine(dialogSelectedPath, Path.GetFileNameWithoutExtension(pak.PakFile.FileName));
+                foreach (var entry in pak.PakFile.PakEntries)
+                {
                     var extractPath = Path.Combine(currentExtractPath, entry.Name);
-                    if (!Directory.Exists(Directory.GetParent(extractPath)?.FullName)) {
-                        Directory.CreateDirectory(Directory.GetParent(extractPath).FullName);
+                    try
+                    {
+                        var directoryPath = Directory.GetParent(extractPath)?.FullName;
+                        if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        File.WriteAllBytesAsync(extractPath, entry.EntryData);
                     }
-                    File.WriteAllBytesAsync(extractPath, entry.EntryData);
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error extracting file {entry.Name} from directory {currentExtractPath}: {ex.Message}");
+                    }
                 }
             }
         }
